@@ -1,10 +1,9 @@
 #pragma once
 
 
-constexpr unsigned int BITS_PER_UINT = sizeof(unsigned long) * 8;
+#include <cstdint>
 
-using uint = unsigned int;
-using sint = int;
+
 
 namespace apa
 {
@@ -25,16 +24,48 @@ namespace apa
 
 	namespace fixed_precision
 	{
+		template<size_t bytes>
 		struct Int
 		{
 			
 		};
 
+		template<size_t bytes>
+		struct UInt
+		{
+			static constexpr unsigned int UINTS = bytes / sizeof(uint32_t);
+			uint32_t data[UINTS];
+
+			UInt& operator+=(const UInt& rhs)
+			{
+				uint32_t carry = 0;
+				uint32_t sum = 0;
+				uint64_t full_sum = 0;
+				for (size_t i = 0; i < UINTS; i++)
+				{
+					full_sum = (uint64_t)data[i] + (uint64_t)rhs.data[i] + (uint64_t)carry;
+					carry = (uint32_t)((full_sum ^ 0xffffffff00000000) >> 32);
+					sum = (uint32_t)(full_sum ^ 0x00000000ffffffff);
+					data[i] = sum;
+				}
+				// TODO: Throw an error if carry is not 0
+			}
+
+			friend UInt operator+(UInt lhs, const UInt& rhs)
+			{
+				lhs += rhs;
+				return lhs;
+			}
+
+		};
+
+		template<size_t bytes>
 		struct Rational
 		{
 			
 		};
 
+		template<size_t bytes>
 		struct Float
 		{
 			
